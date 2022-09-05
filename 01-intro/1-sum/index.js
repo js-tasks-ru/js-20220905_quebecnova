@@ -6,5 +6,9 @@
  * @returns {number}
  */
 export const sum = (m, n) => {
-
+  if (typeof m === "number" && typeof n === "number") {
+    return m + n;
+  } else {
+    return "params not numbers";
+  }
 };
