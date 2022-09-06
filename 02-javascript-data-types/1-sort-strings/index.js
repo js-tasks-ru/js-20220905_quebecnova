@@ -6,16 +6,8 @@
  */
 export function sortStrings(arr, param = "asc") {
   const copyArr = arr.slice();
-
-  if (param === "asc") {
-    return copyArr.sort((a, b) =>
-      a.localeCompare(b, undefined, { caseFirst: "upper" })
-    );
-  }
-
-  if (param === "desc") {
-    return copyArr.sort((a, b) =>
-      b.localeCompare(a, undefined, { caseFirst: "upper" })
-    );
-  }
+  const sortType = param === "asc" ? 1 : -1;
+  return copyArr.sort(
+    (a, b) => sortType * a.localeCompare(b, undefined, { caseFirst: "upper" })
+  );
 }
