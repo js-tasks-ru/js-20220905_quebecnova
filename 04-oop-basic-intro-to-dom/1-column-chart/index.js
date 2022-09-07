@@ -87,6 +87,7 @@ export default class ColumnChart {
 
   update(data) {
     this.data = data;
+    this.renderChart()
   }
 
   destroy() {
