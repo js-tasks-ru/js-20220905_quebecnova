@@ -6,14 +6,13 @@
 
 export function createGetter(path) {
   const paths = path.split(".");
-  return function getter(curr) {
+  return (curr) => {
     let res = curr;
-    paths.forEach((currPath) => {
+    for (const singlePath of paths) {
       if (res) {
-        const next = res[currPath];
-        res = next;
+        res = res[singlePath];
       }
-    });
+    }
     return res;
   };
 }
