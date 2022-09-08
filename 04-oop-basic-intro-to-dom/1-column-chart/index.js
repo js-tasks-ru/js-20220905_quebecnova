@@ -7,99 +7,71 @@ export default class ColumnChart {
     value = 0,
     label = "",
     link = "",
-    formatHeading = null,
+    formatHeading = () => value,
   } = {}) {
     this.data = data;
-    this.value = this.formatValue(value.toString());
+    this.value = value;
     this.label = label;
     this.link = link;
-    this.formatHeading = formatHeading;
+    this.formattedHeading = formatHeading(value);
 
     this.renderChart();
   }
 
-  formatValue(value) {
-    let formattedValue = "";
-    let i = 0;
-    for (const char of value) {
-      i++;
-      if (i >= 4) {
-        formattedValue += `,${char}`;
-        i = 0;
-        continue;
-      }
-      formattedValue += char;
-    }
-    return formattedValue;
+  renderLink() {
+    return `
+      <a class='column-chart__link' href=${this.link}>
+        View all
+      </a>
+    `;
   }
 
-  renderLink(chartTitle) {
-    const chartTitleLink = document.createElement("a");
-    chartTitleLink.classList.add("column-chart__link");
-    chartTitleLink.setAttribute("href", this.link);
-    chartTitleLink.innerHTML = "View all";
-    chartTitle.append(chartTitleLink);
-  }
-
-  renderValues(chartValuesContainer) {
-    const chartValues = [];
+  renderValues() {
     const maxValue = Math.max(...this.data);
-
-    this.data.forEach((value) => {
+    const scale = this.chartHeight / maxValue;
+    let chartContainer = "";
+    for (const value of this.data) {
       const precent = ((value / maxValue) * 100).toFixed(0) + "%";
-      const scale = this.chartHeight / maxValue;
-      const chartValue = document.createElement("div");
-      chartValue.setAttribute("style", `--value: ${Math.floor(value * scale)}`);
-      chartValue.setAttribute("data-tooltip", precent);
-      chartValues.push(chartValue);
-    });
-
-    chartValuesContainer.append(...chartValues);
+      chartContainer += `
+        <div 
+          style='--value: ${Math.floor(value * scale)}'
+          data-tooltip='${precent}'
+        ></div>
+      `;
+    }
+    return chartContainer;
   }
 
   renderChart() {
-    const chart = document.createElement("div");
-    const chartTitle = document.createElement("div");
-    const chartContainer = document.createElement("div");
-    const chartValuesContainer = document.createElement("div");
-    const chartHeader = document.createElement("div");
-    chart.classList.add("column-chart");
-    chartTitle.classList.add("column-chart__title");
-    chartContainer.classList.add("column-chart__container");
-    chartValuesContainer.classList.add("column-chart__chart");
-    chartHeader.classList.add("column-chart__header");
-    chartHeader.innerHTML = this.value;
-    chartContainer.append(chartHeader, chartValuesContainer);
-    chartTitle.append("Total " + this.label);
-    if (this.formatHeading) {
-      chartHeader.innerHTML = this.formatHeading(this.value);
-    }
-    if (this.link) {
-      this.renderLink(chartTitle);
-    }
-    if (!this.data.length) {
-      chart.classList.add("column-chart_loading");
-    }
-    this.renderValues(chartValuesContainer);
-    chart.append(chartTitle, chartContainer);
-    this.element = chart;
+    const isLoading = !this.data.length;
+    this.element = document.createElement("div");
+    this.element.className = `column-chart ${
+      isLoading ? "column-chart_loading" : ""
+    }`;
+    this.element.innerHTML = `
+        <div class='column-chart__title'>
+          Total ${this.label}
+          ${this.link && this.renderLink()}
+        </div>
+        <div class='column-chart__container'>
+          <div class='column-chart__header'>${this.formattedHeading}</div>
+          <div class='column-chart__chart'>
+            ${!isLoading ? this.renderValues() : ""}
+          </div>
+        </div>
+    `;
   }
 
   update(data) {
     this.data = data;
-    this.renderChart()
+    this.renderChart();
   }
 
   destroy() {
-    this.data = [];
-    this.element = null;
-    this.formatHeading = null;
-    this.label = "";
-    this.link = "";
-    this.value = 0;
+    this.remove();
   }
 
   remove() {
-    this.element = null;
+    this.element.remove();
   }
 }
