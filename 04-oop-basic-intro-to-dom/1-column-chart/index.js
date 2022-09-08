@@ -20,6 +20,23 @@ export default class ColumnChart {
     this.renderChart();
   }
 
+  get HTMLTemplate() {
+    return `
+      <div class='column-chart column-chart_loading'>
+        <div class='column-chart__title'>
+          Total ${this.label}
+          ${this.link && this.renderLink()}
+        </div>
+        <div class='column-chart__container'>
+          <div class='column-chart__header'>${this.formattedHeading}</div>
+          <div class='column-chart__chart'>
+            ${this.renderValues()}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   renderLink() {
     return `
       <a class='column-chart__link' href=${this.link}>
@@ -29,6 +46,7 @@ export default class ColumnChart {
   }
 
   renderValues() {
+    if (!this.data.length) return;
     const maxValue = Math.max(...this.data);
     const scale = this.chartHeight / maxValue;
     let chartContainer = "";
@@ -45,23 +63,13 @@ export default class ColumnChart {
   }
 
   renderChart() {
-    const isLoading = !this.data.length;
-    this.element = document.createElement("div");
-    this.element.className = `column-chart ${
-      isLoading ? "column-chart_loading" : ""
-    }`;
-    this.element.innerHTML = `
-        <div class='column-chart__title'>
-          Total ${this.label}
-          ${this.link && this.renderLink()}
-        </div>
-        <div class='column-chart__container'>
-          <div class='column-chart__header'>${this.formattedHeading}</div>
-          <div class='column-chart__chart'>
-            ${!isLoading ? this.renderValues() : ""}
-          </div>
-        </div>
-    `;
+    const element = document.createElement("div");
+    element.innerHTML = this.HTMLTemplate;
+    this.element = element.firstElementChild;
+
+    if (this.data.length) {
+      this.element.classList.remove("column-chart_loading");
+    }
   }
 
   update(data) {
