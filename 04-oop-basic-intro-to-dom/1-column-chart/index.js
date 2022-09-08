@@ -13,7 +13,9 @@ export default class ColumnChart {
     this.value = value;
     this.label = label;
     this.link = link;
-    this.formattedHeading = formatHeading(value);
+    this.formattedHeading = formatHeading(
+      new Intl.NumberFormat().format(value)
+    );
 
     this.renderChart();
   }
