@@ -7,15 +7,13 @@ export default class ColumnChart {
     value = 0,
     label = "",
     link = "",
-    formatHeading = () => value,
+    formatHeading = (value) => value,
   } = {}) {
     this.data = data;
     this.value = value;
     this.label = label;
     this.link = link;
-    this.formattedHeading = formatHeading(
-      new Intl.NumberFormat("en").format(value)
-    );
+    this.formattedHeading = formatHeading(value);
 
     this.renderChart();
   }
@@ -25,7 +23,7 @@ export default class ColumnChart {
       <div class='column-chart column-chart_loading'>
         <div class='column-chart__title'>
           Total ${this.label}
-          ${this.link && this.renderLink()}
+          ${this.renderLink()}
         </div>
         <div class='column-chart__container'>
           <div class='column-chart__header'>${this.formattedHeading}</div>
@@ -38,6 +36,7 @@ export default class ColumnChart {
   }
 
   renderLink() {
+    if (!this.link) return "";
     return `
       <a class='column-chart__link' href=${this.link}>
         View all
@@ -49,17 +48,17 @@ export default class ColumnChart {
     if (!this.data.length) return;
     const maxValue = Math.max(...this.data);
     const scale = this.chartHeight / maxValue;
-    let chartContainer = "";
-    for (const value of this.data) {
-      const precent = ((value / maxValue) * 100).toFixed(0) + "%";
-      chartContainer += `
+    return this.data
+      .map((value) => {
+        const precent = ((value / maxValue) * 100).toFixed(0) + "%";
+        return `
         <div 
           style='--value: ${Math.floor(value * scale)}'
           data-tooltip='${precent}'
         ></div>
       `;
-    }
-    return chartContainer;
+      })
+      .join("");
   }
 
   renderChart() {
