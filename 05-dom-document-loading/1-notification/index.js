@@ -50,7 +50,7 @@ export default class NotificationMessage {
   }
 
   remove() {
-    NotificationMessage.element.remove();
+    NotificationMessage.element?.remove();
   }
 
   destroy() {
