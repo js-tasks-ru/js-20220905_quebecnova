@@ -6,7 +6,13 @@
  */
 export function sortStrings(arr, param = "asc") {
   const copyArr = [...arr];
-  const sortType = param === "asc" ? 1 : -1;
+  let sortType;
+  if (param === "asc") {
+    sortType = 1;
+  }
+  if (param === "desc") {
+    sortType = -1;
+  }
   return copyArr.sort(
     (a, b) =>
       sortType * a.localeCompare(b, ["ru", "en"], { caseFirst: "upper" })
