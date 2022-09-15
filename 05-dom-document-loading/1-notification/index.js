@@ -46,8 +46,8 @@ export default class NotificationMessage {
     this.element = element.firstElementChild;
   }
 
-  show(e = document.body) {
-    e.append(NotificationMessage.element);
+  show(element = document.body) {
+    element.append(NotificationMessage.element);
 
     NotificationMessage.timeout = setTimeout(() => {
       this.remove();
