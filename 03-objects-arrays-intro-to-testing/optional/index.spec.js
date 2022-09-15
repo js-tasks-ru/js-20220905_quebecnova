@@ -25,7 +25,7 @@ describe("should return true with passed arguments", () => {
 
   it("returnTrue5", () => {
     const obj = {};
-    obj[obj] = obj;
+    obj[obj] = "a";
     expect(functions.returnTrue5(obj)).toEqual(true);
   });
 
