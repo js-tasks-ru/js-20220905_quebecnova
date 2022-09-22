@@ -1,12 +1,12 @@
 class Tooltip {
-  static #tooltip = null;
+  static tooltip = null;
   element;
 
   constructor() {
-    if (!Tooltip.#tooltip) {
-      Tooltip.#tooltip = this;
+    if (!Tooltip.tooltip) {
+      Tooltip.tooltip = this;
     } else {
-      return Tooltip.#tooltip;
+      return Tooltip.tooltip;
     }
   }
 
@@ -41,6 +41,10 @@ class Tooltip {
   removeTooltip = () => {
     this.remove();
     this.element = null;
+    document.body.removeEventListener(
+      "pointermove",
+      this.changeTooltipPosition
+    );
   };
 
   remove() {
@@ -49,6 +53,8 @@ class Tooltip {
 
   destroy() {
     this.remove();
+    document.removeEventListener("poniterover", this.showTooltip);
+    document.removeEventListener("pointerout", this.removeTooltip);
   }
 }
 

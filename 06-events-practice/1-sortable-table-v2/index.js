@@ -1,5 +1,6 @@
 export default class SortableTable {
   isSortLocally = true;
+  subElements = {};
 
   constructor(headersConfig, { data = [], sorted = {} } = {}) {
     this.headersConfig = headersConfig;
@@ -17,25 +18,26 @@ export default class SortableTable {
       this.sortOnServer();
     }
 
-    this.update();
+    this.updateProducts();
   }
 
   sortOnServer() {}
 
   sortOnClient(fieldValue, orderValue) {
+    let direction;
+    if (orderValue === "asc") {
+      direction = 1;
+    } else if (orderValue === "desc") {
+      direction = -1;
+    } else {
+      throw new Error(`not valid orderValue: ${orderValue}`);
+    }
+
     const sortingField = this.element.querySelector(
       `[data-id='${fieldValue}']`
     );
 
-    let direction;
-    if (orderValue === "asc") {
-      direction = 1;
-      sortingField.dataset.order = orderValue;
-    }
-    if (orderValue === "desc") {
-      direction = -1;
-      sortingField.dataset.order = orderValue;
-    }
+    sortingField.dataset.order = orderValue;
 
     this.data.sort((a, b) => {
       if (typeof a[fieldValue] === "number") {
@@ -132,21 +134,21 @@ export default class SortableTable {
     this.initEventListeners();
   }
 
-  validateSort(e) {
+  validateSort = (e) => {
     const target = e.target.closest(".sortable-table__cell");
     if (target?.dataset?.sortable === "true") {
-      const order = target.dataset.order === "asc" ? "asc" : "desc";
+      const order = target.dataset.order === "desc" ? "asc" : "desc";
       this.sort(target.dataset.id, order);
     }
-  }
+  };
 
   initEventListeners() {
-    const bindedValidateSort = this.validateSort.bind(this);
-    document.addEventListener("pointerdown", bindedValidateSort);
-    this.removeEventListeners = () => {
-      document.removeEventListener("pointerdown", bindedValidateSort);
-    };
+    document.addEventListener("pointerdown", this.validateSort);
   }
+
+  removeEventListeners = () => {
+    document.removeEventListener("pointerdown", this.validateSort);
+  };
 
   getSubElements() {
     const subElements = {};
@@ -160,9 +162,9 @@ export default class SortableTable {
     return subElements;
   }
 
-  update() {
-    this.element.innerHTML = this.HTMLTemplate;
-    this.subElements = this.getSubElements();
+  updateProducts() {
+    const { body } = this.subElements;
+    body.innerHTML = this.renderProducts();
   }
 
   remove() {
