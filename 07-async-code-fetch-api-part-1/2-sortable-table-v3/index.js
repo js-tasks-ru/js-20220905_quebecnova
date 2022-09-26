@@ -77,6 +77,15 @@ export default class SortableTable {
     });
   }
 
+  async sortOnServer(id, order) {
+    const newSortURL = this.getDataURL({
+      id,
+      order,
+    });
+
+    this.data = await this.fetchDataAndHandleLoading(newSortURL);
+  }
+
   getDataURL({
     id = "title",
     order = "asc",
@@ -92,15 +101,6 @@ export default class SortableTable {
     newDataURL.searchParams.append("_end", end);
 
     return newDataURL;
-  }
-
-  async sortOnServer(id, order) {
-    const newSortURL = this.getDataURL({
-      id,
-      order,
-    });
-
-    this.data = await this.fetchDataAndHandleLoading(newSortURL);
   }
 
   async getData({
