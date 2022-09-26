@@ -33,9 +33,9 @@ export default class SortableTable {
     sortingField.dataset.order = order;
   }
 
-  validateSort = (e) => {
+  validateSort = (event) => {
     if (this.isTableLoading()) return;
-    const target = e.target.closest(".sortable-table__cell");
+    const target = event.target.closest(".sortable-table__cell");
     if (target?.dataset?.sortable === "true") {
       const order = target.dataset.order === "desc" ? "asc" : "desc";
       this.sort(target.dataset.id, order);
