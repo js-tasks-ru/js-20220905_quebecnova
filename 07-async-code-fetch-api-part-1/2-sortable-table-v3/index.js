@@ -43,7 +43,6 @@ export default class SortableTable {
   };
 
   async sort(id, order) {
-    console.log(this.isSortLocally);
     this.isSortLocally
       ? this.sortOnClient(id, order)
       : await this.sortOnServer(id, order);
