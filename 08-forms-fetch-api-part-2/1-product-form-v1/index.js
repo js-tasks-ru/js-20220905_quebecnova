@@ -9,7 +9,18 @@ const PRODUCTS_ENDPOINT = "api/rest/products";
 
 export default class ProductForm {
   imgurURL = new URL(IMGUR_URL);
-  product = {};
+  product = {
+    title: "",
+    id: "",
+    description: "",
+    images: [],
+    subcategory: "",
+    price: "",
+    discount: "",
+    quantity: "",
+    status: 1,
+    rating: "",
+  };
   subElements = {};
 
   constructor(productId) {
@@ -22,14 +33,16 @@ export default class ProductForm {
       const categoriesURL = new URL(CATEGORIES_ENDPOINT, BACKEND_URL);
       categoriesURL.searchParams.append("_sort", "weight");
       categoriesURL.searchParams.append("_refs", "subcategory");
-      this.categories = await fetchJson(categoriesURL);
-
+      const fetchCategories = fetchJson(categoriesURL);
+      let fetchProduct = Promise.resolve(this.product);
       if (this.isUpdatingProduct) {
         const productURL = new URL(PRODUCTS_ENDPOINT, BACKEND_URL);
         productURL.searchParams.append("id", this.productId);
-        const products = await fetchJson(productURL);
-        this.product = products[0];
+        fetchProduct = fetchJson(productURL);
       }
+      const promises = await Promise.all([fetchCategories, fetchProduct]);
+      this.categories = promises[0];
+      this.product = promises[1][0];
     } catch (error) {
       this.isUpdatingProduct = false;
       console.error(error);
@@ -57,10 +70,12 @@ export default class ProductForm {
           .map((subcategory) => {
             return `
               <option 
-                value="${category.id}-i-${subcategory.id}"
-                data-subcategory=${subcategory.id}
+                value="${escapeHtml(category.id)}-i-${escapeHtml(
+              subcategory.id
+            )}"
+                data-subcategory=${escapeHtml(subcategory.id)}
               >
-                ${category.title} > ${subcategory.title}
+                ${escapeHtml(category.title)} > ${escapeHtml(subcategory.title)}
               </option>
           `;
           })
@@ -242,6 +257,7 @@ export default class ProductForm {
           headers: {
             Authorization: `Client-ID ${IMGUR_CLIENT_ID}`,
           },
+          referrer: "",
         });
         const imageDiv = document.createElement("div");
 
