@@ -8,6 +8,11 @@ import fetchJson from "./utils/fetch-json.js";
 const BACKEND_URL = "https://course-js.javascript.ru/";
 
 export default class Page {
+  range = {
+    to: new Date(),
+    from: new Date(new Date().setMonth(new Date().getMonth() - 1))
+  }
+
   get HTMLTemplate() {
     return `
     <div class="dashboard">
@@ -33,67 +38,84 @@ export default class Page {
   }
 
   async renderSortableTable() {
-    const sortableTableInst = new SortableTable(header, {
-      url: "api/rest/products",
+    this.sortableTableInst = new SortableTable(header, {
+      url: "api/dashboard/bestsellers"
     });
 
-    this.subElements.sortableTable.append(sortableTableInst.element);
+    const {from, to} = this.range;
+
+    const data = await this.loadBestSellersData(from, to);
+    this.sortableTableInst.renderRows(data);  
+
+    this.subElements.sortableTable.append(this.sortableTableInst.element);
   }
 
   async renderRangePicker() {
-    const rangePickerInst = new RangePicker({
-      from: new Date(2019, 9, 2),
-      to: new Date(2019, 10, 5),
-    });
+    this.rangePickerInst = new RangePicker(this.range);
 
-    this.subElements.rangePicker.append(rangePickerInst.element);
+    this.subElements.rangePicker.append(this.rangePickerInst.element);
   }
 
   async renderColumnChart() {
-    const getRange = () => {
-      const now = new Date();
-      const to = new Date();
-      const from = new Date(now.setMonth(now.getMonth() - 1));
 
-      return { from, to };
-    };
-
-    const { from, to } = getRange();
-
-    const ordersChartInst = new ColumnChart({
+    this.ordersChartInst = new ColumnChart({
       url: "api/dashboard/orders",
-      range: {
-        from,
-        to,
-      },
+      range: this.range,
       label: "orders",
       link: "#",
     });
 
-    const salesChartInst = new ColumnChart({
+    this.salesChartInst = new ColumnChart({
       url: "api/dashboard/sales",
-      range: {
-        from,
-        to,
-      },
+      range: this.range,
       label: "sales",
       formatHeading: (data) => `$${data}`,
     });
 
-    const customersChartInst = new ColumnChart({
+    this.customersChartInst = new ColumnChart({
       url: "api/dashboard/customers",
-      range: {
-        from,
-        to,
-      },
+      range: this.range,
       label: "customers",
     });
 
     const { ordersChart, salesChart, customersChart } = this.subElements;
 
-    ordersChart.append(ordersChartInst.element);
-    salesChart.append(salesChartInst.element);
-    customersChart.append(customersChartInst.element);
+    ordersChart.append(this.ordersChartInst.element);
+    salesChart.append(this.salesChartInst.element);
+    customersChart.append(this.customersChartInst.element);
+  }
+  
+  async loadBestSellersData(from, to, start = '1', end = '20') {
+    const url = new URL('api/dashboard/bestsellers', BACKEND_URL);
+
+    url.searchParams.set('from', from);
+    url.searchParams.set('to', to);
+    url.searchParams.set('_start', start);
+    url.searchParams.set('_end', end);
+
+    this.sortableTableInst.element.classList.add('sortable-table_loading');
+
+    const data = await fetchJson(url.toString());
+
+    this.sortableTableInst.element.classList.remove('sortable-table_loading');
+
+    return data;
+  }
+
+  handleDateChange = async (event) => {
+    const progressBar = document.querySelector('.progress-bar');
+    progressBar.style.display = 'block';
+
+    const {from, to} = event.detail;
+
+    this.ordersChartInst.update(from, to);
+    this.salesChartInst.update(from, to);
+    this.customersChartInst.update(from, to);
+    
+    const bestSellersData = await this.loadBestSellersData(from, to);
+    this.sortableTableInst.renderRows(bestSellersData);
+
+    progressBar.style.display = 'none';
   }
 
   async render() {
@@ -103,9 +125,17 @@ export default class Page {
 
     this.element = element.firstElementChild;
     this.subElements = this.getSubElements(this.element);
+
+    const progressBar = document.querySelector('.progress-bar');
+    progressBar.style.display = 'block';
+
     await this.renderColumnChart();
     await this.renderRangePicker();
     await this.renderSortableTable();
+
+    this.initEventListeners();
+
+    progressBar.style.display = 'none';
     return this.element;
   }
 
@@ -120,13 +150,11 @@ export default class Page {
   }
 
   initEventListeners() {
-    document.addEventListener("pointerdown", this.handleClick);
+    this.element.addEventListener('date-select', this.handleDateChange);
   }
 
   removeEventListeners() {
-    document.removeEventListener("pointerdown", this.handleClick);
-    document.removeEventListener("pointermove", this.moveItem);
-    document.removeEventListener("pointerup", this.dropItem);
+    this.element.removeEventListener('date-select', this.handleDateChange);
   }
 
   remove() {
