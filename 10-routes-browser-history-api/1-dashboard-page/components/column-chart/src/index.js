@@ -51,7 +51,6 @@ export default class ColumnChart {
     this.url.searchParams.set('to', to.toISOString());
 
     const data = await fetchJson(this.url);
-
     this.setNewRange(from, to);
 
     if (data && Object.values(data).length) {
